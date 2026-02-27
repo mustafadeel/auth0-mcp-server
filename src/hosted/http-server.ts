@@ -1,6 +1,7 @@
 import http from 'http';
 import { loadEnvConfig } from './env-config.js';
 import { handleOAuthMetadata } from './oauth-metadata.js';
+import { handleRegister } from './register.js';
 import { handleMcpRequest } from './mcp-handler.js';
 import { logInfo, logError } from '../utils/logger.js';
 import { packageVersion } from '../utils/package.js';
@@ -46,6 +47,12 @@ function handleRequest(
   // Route: OAuth metadata discovery
   if (pathname === '/.well-known/oauth-authorization-server') {
     handleOAuthMetadata(req, res, envConfig);
+    return;
+  }
+
+  // Route: Dynamic client registration (RFC 7591)
+  if (pathname === '/register') {
+    handleRegister(req, res, envConfig);
     return;
   }
 

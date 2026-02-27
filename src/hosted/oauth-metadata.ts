@@ -4,9 +4,9 @@ import type { HostedEnvConfig } from './env-config.js';
 /**
  * Builds the OAuth 2.0 Authorization Server Metadata document (RFC 8414).
  * Points directly to Auth0's OAuth endpoints — our server does not proxy
- * any OAuth traffic.
+ * any OAuth traffic, except for /register which we handle ourselves.
  */
-function buildMetadata(envConfig: HostedEnvConfig) {
+function buildMetadata(envConfig: HostedEnvConfig, serverBaseUrl: string) {
   const issuer = `https://${envConfig.auth0Domain}/`;
 
   return {
@@ -17,7 +17,7 @@ function buildMetadata(envConfig: HostedEnvConfig) {
     userinfo_endpoint: `https://${envConfig.auth0Domain}/userinfo`,
     mfa_challenge_endpoint: `https://${envConfig.auth0Domain}/mfa/challenge`,
     jwks_uri: `https://${envConfig.auth0Domain}/.well-known/jwks.json`,
-    registration_endpoint: `https://${envConfig.auth0Domain}/oidc/register`,
+    registration_endpoint: `${serverBaseUrl}/register`,
     revocation_endpoint: `https://${envConfig.auth0Domain}/oauth/revoke`,
     scopes_supported: [
       'openid',
@@ -99,7 +99,12 @@ export function handleOAuthMetadata(
     return;
   }
 
-  const metadata = buildMetadata(envConfig);
+  // Derive the server's base URL from SERVER_URL env or from the request
+  const serverBaseUrl =
+    envConfig.serverUrl ||
+    `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host}`;
+
+  const metadata = buildMetadata(envConfig, serverBaseUrl);
 
   res.writeHead(200, {
     'Content-Type': 'application/json',
