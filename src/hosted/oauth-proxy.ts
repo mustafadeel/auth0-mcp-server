@@ -32,13 +32,13 @@ export function handleAuthorize(
   const incomingUrl = new URL(req.url || '/', `http://${req.headers.host}`);
   const params = incomingUrl.searchParams;
 
-  // Auth0's Resource Parameter Compatibility Profile maps the `resource`
-  // parameter to the API audience. If the client sent `resource`, keep it.
-  // Also set `audience` to the Management API for Auth0 compatibility,
-  // since Auth0 needs it to issue a token with the right API permissions.
-  if (!params.has('audience')) {
-    params.set('audience', envConfig.auth0Audience);
-  }
+  // The MCP client sends `resource` = MCP server URL (per RFC 8707),
+  // but Auth0 needs `audience` = Management API identifier to issue
+  // a token with the right API permissions. Always override audience.
+  params.set('audience', envConfig.auth0Audience);
+
+  // Remove the `resource` param so Auth0 doesn't try to use it as the audience
+  params.delete('resource');
 
   // Inject/merge scopes — add Management API scopes to whatever the client requested
   const clientScopes = params.get('scope') || '';
