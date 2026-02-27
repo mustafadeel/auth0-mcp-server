@@ -316,6 +316,8 @@ export const APPLICATION_HANDLERS: Record<
         const managementClientConfig: Auth0Config = {
           domain: config.domain,
           token: request.token,
+          clientId: config.clientId,
+          clientSecret: config.clientSecret,
         };
         const managementClient = await getManagementClient(managementClientConfig);
         // Use the Auth0 SDK to get all clients
@@ -420,6 +422,8 @@ export const APPLICATION_HANDLERS: Record<
         const managementClientConfig: Auth0Config = {
           domain: config.domain,
           token: request.token,
+          clientId: config.clientId,
+          clientSecret: config.clientSecret,
         };
         const managementClient = await getManagementClient(managementClientConfig);
 
@@ -589,6 +593,8 @@ export const APPLICATION_HANDLERS: Record<
         const managementClientConfig: Auth0Config = {
           domain: config.domain,
           token: request.token,
+          clientId: config.clientId,
+          clientSecret: config.clientSecret,
         };
         const managementClient = await getManagementClient(managementClientConfig);
 
@@ -752,6 +758,8 @@ export const APPLICATION_HANDLERS: Record<
         const managementClientConfig: Auth0Config = {
           domain: config.domain,
           token: request.token,
+          clientId: config.clientId,
+          clientSecret: config.clientSecret,
         };
         const managementClient = await getManagementClient(managementClientConfig);
 

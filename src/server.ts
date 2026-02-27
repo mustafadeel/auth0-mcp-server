@@ -107,7 +107,7 @@ export async function startServer(options?: ServerOptions) {
 
         // Add auth token to request
         const requestWithToken = {
-          token: config.token,
+          token: config.token!,
           parameters: request.params.arguments || {},
         };
 

@@ -38,13 +38,25 @@ function getUserAgent(): string {
  *   ready to make authenticated requests to the Auth0 Management API.
  */
 export const getManagementClient = async (config: Auth0Config): Promise<ManagementClient> => {
-  return new ManagementClient({
+  const commonOptions = {
     domain: config.domain,
-    token: config.token,
     retry: { maxRetries: 10, enabled: true },
     headers: {
       'User-agent': getUserAgent(),
     },
+  };
+
+  if (config.clientId && config.clientSecret) {
+    return new ManagementClient({
+      ...commonOptions,
+      clientId: config.clientId,
+      clientSecret: config.clientSecret,
+    });
+  }
+
+  return new ManagementClient({
+    ...commonOptions,
+    token: config.token!,
   });
 };
 

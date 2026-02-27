@@ -4,6 +4,7 @@ import type { Auth0Config } from '../utils/config.js';
 export interface HostedEnvConfig {
   auth0Domain: string;
   auth0ClientId: string;
+  auth0ClientSecret: string;
   auth0Audience: string;
   serverUrl: string;
   port: number;
@@ -16,10 +17,12 @@ export interface HostedEnvConfig {
 export function loadEnvConfig(): HostedEnvConfig {
   const auth0Domain = process.env.AUTH0_DOMAIN;
   const auth0ClientId = process.env.AUTH0_CLIENT_ID;
+  const auth0ClientSecret = process.env.AUTH0_CLIENT_SECRET;
 
   const missing: string[] = [];
   if (!auth0Domain) missing.push('AUTH0_DOMAIN');
   if (!auth0ClientId) missing.push('AUTH0_CLIENT_ID');
+  if (!auth0ClientSecret) missing.push('AUTH0_CLIENT_SECRET');
 
   if (missing.length > 0) {
     throw new Error(
@@ -37,6 +40,7 @@ export function loadEnvConfig(): HostedEnvConfig {
   return {
     auth0Domain: formattedDomain,
     auth0ClientId: auth0ClientId!,
+    auth0ClientSecret: auth0ClientSecret!,
     auth0Audience,
     serverUrl,
     port,

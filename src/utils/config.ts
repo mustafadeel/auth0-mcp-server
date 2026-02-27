@@ -25,10 +25,10 @@ log(`Debug mode: ${isDebugMode}`);
 export interface Auth0Config {
   /**
    * Authentication token for Auth0 Management API access.
-   * Must be valid and non-expired for API operations to succeed.
    * Used in the Authorization header for all API requests.
+   * Optional when clientId/clientSecret are provided (M2M credential mode).
    */
-  token: string;
+  token?: string;
 
   /**
    * Auth0 tenant domain (e.g., "your-tenant.auth0.com").
@@ -43,6 +43,18 @@ export interface Auth0Config {
    * Defaults to domain if not explicitly provided.
    */
   tenantName?: string;
+
+  /**
+   * M2M application client ID for credential-based authentication.
+   * When provided with clientSecret, ManagementClient uses client_credentials
+   * grant instead of a pre-existing token.
+   */
+  clientId?: string;
+
+  /**
+   * M2M application client secret for credential-based authentication.
+   */
+  clientSecret?: string;
 }
 
 /**

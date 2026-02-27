@@ -29,9 +29,26 @@ describe('Management Client', () => {
   });
 
   describe('getManagementClient', () => {
-    it('should initialize ManagementClient with correct parameters', async () => {
+    it('should initialize ManagementClient with credentials when clientId and clientSecret are provided', async () => {
       // Act
       await getManagementClient(mockConfig);
+
+      // Assert
+      expect(ManagementClient).toHaveBeenCalledWith({
+        domain: mockConfig.domain,
+        clientId: mockConfig.clientId,
+        clientSecret: mockConfig.clientSecret,
+        retry: { maxRetries: 10, enabled: true },
+        headers: {
+          'User-agent': expect.any(String),
+        },
+      });
+    });
+
+    it('should initialize ManagementClient with token when no credentials provided', async () => {
+      // Act
+      const tokenOnlyConfig = { domain: mockConfig.domain, token: mockConfig.token };
+      await getManagementClient(tokenOnlyConfig);
 
       // Assert
       expect(ManagementClient).toHaveBeenCalledWith({

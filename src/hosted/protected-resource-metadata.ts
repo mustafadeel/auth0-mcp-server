@@ -1,21 +1,25 @@
 import type { IncomingMessage, ServerResponse } from 'http';
+import { ProtectedResourceMetadataBuilder, BearerMethod } from '@auth0/auth0-api-js';
 import type { HostedEnvConfig } from './env-config.js';
 import { getAllScopes } from '../utils/scopes.js';
 
 /**
- * Builds the OAuth 2.0 Protected Resource Metadata document (RFC 9728).
+ * Builds the OAuth 2.0 Protected Resource Metadata document (RFC 9728)
+ * using @auth0/auth0-api-js ProtectedResourceMetadataBuilder.
  *
  * The MCP server advertises itself as a Protected Resource, pointing
- * MCP clients to Auth0 as the authorization server. This is the updated
- * discovery mechanism per MCP spec 2025-06-18.
+ * MCP clients to Auth0 as the authorization server.
  */
 function buildProtectedResourceMetadata(envConfig: HostedEnvConfig, serverBaseUrl: string) {
-  return {
-    resource: envConfig.serverUrl || serverBaseUrl,
-    authorization_servers: [`https://${envConfig.auth0Domain}`],
-    scopes_supported: getAllScopes(),
-    bearer_methods_supported: ['header'],
-  };
+  const resource = envConfig.serverUrl || serverBaseUrl;
+
+  return new ProtectedResourceMetadataBuilder(resource, [
+    `https://${envConfig.auth0Domain}`,
+  ])
+    .withScopesSupported(getAllScopes())
+    .withBearerMethodsSupported([BearerMethod.HEADER])
+    .build()
+    .toJSON();
 }
 
 /**

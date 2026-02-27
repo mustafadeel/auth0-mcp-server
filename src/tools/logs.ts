@@ -141,6 +141,8 @@ export const LOG_HANDLERS: Record<
         const managementClientConfig: Auth0Config = {
           domain: config.domain,
           token: request.token,
+          clientId: config.clientId,
+          clientSecret: config.clientSecret,
         };
         const managementClient = await getManagementClient(managementClientConfig);
 
@@ -213,6 +215,8 @@ export const LOG_HANDLERS: Record<
         const managementClientConfig: Auth0Config = {
           domain: config.domain,
           token: request.token,
+          clientId: config.clientId,
+          clientSecret: config.clientSecret,
         };
         const managementClient = await getManagementClient(managementClientConfig);
 

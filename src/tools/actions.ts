@@ -306,6 +306,8 @@ export const ACTION_HANDLERS: Record<
         const managementClientConfig: Auth0Config = {
           domain: config.domain,
           token: request.token,
+          clientId: config.clientId,
+          clientSecret: config.clientSecret,
         };
         const managementClient = await getManagementClient(managementClientConfig);
 
@@ -419,6 +421,8 @@ export const ACTION_HANDLERS: Record<
         const managementClientConfig: Auth0Config = {
           domain: config.domain,
           token: request.token,
+          clientId: config.clientId,
+          clientSecret: config.clientSecret,
         };
         const managementClient = await getManagementClient(managementClientConfig);
 
@@ -515,6 +519,8 @@ export const ACTION_HANDLERS: Record<
         const managementClientConfig: Auth0Config = {
           domain: config.domain,
           token: request.token,
+          clientId: config.clientId,
+          clientSecret: config.clientSecret,
         };
         const managementClient = await getManagementClient(managementClientConfig);
 
@@ -592,6 +598,8 @@ export const ACTION_HANDLERS: Record<
         const managementClientConfig: Auth0Config = {
           domain: config.domain,
           token: request.token,
+          clientId: config.clientId,
+          clientSecret: config.clientSecret,
         };
         const managementClient = await getManagementClient(managementClientConfig);
 
@@ -664,6 +672,8 @@ export const ACTION_HANDLERS: Record<
         const managementClientConfig: Auth0Config = {
           domain: config.domain,
           token: request.token,
+          clientId: config.clientId,
+          clientSecret: config.clientSecret,
         };
         const managementClient = await getManagementClient(managementClientConfig);
 

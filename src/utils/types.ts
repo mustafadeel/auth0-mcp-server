@@ -29,6 +29,8 @@ export interface HandlerRequest {
 
 export interface HandlerConfig {
   domain: string | undefined;
+  clientId?: string;
+  clientSecret?: string;
 }
 
 export interface HandlerResponse {
