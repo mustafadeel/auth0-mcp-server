@@ -30,7 +30,7 @@ export function loadEnvConfig(): HostedEnvConfig {
 
   const formattedDomain = formatDomain(auth0Domain!);
   const auth0Audience =
-    process.env.AUTH0_AUDIENCE || `https://${formattedDomain}/api/v2/`;
+    process.env.AUTH0_AUDIENCE || `https://*.${formattedDomain}/api/v2/`;
   const serverUrl = process.env.SERVER_URL || '';
   const port = parseInt(process.env.PORT || '3000', 10);
 

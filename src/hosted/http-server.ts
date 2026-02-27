@@ -1,6 +1,7 @@
 import http from 'http';
 import { loadEnvConfig } from './env-config.js';
 import { handleOAuthMetadata } from './oauth-metadata.js';
+import { handleProtectedResourceMetadata } from './protected-resource-metadata.js';
 import { handleRegister } from './register.js';
 import { handleAuthorize, handleToken } from './oauth-proxy.js';
 import { handleMcpRequest } from './mcp-handler.js';
@@ -45,7 +46,13 @@ function handleRequest(
   const url = new URL(req.url || '/', `http://${req.headers.host}`);
   const pathname = url.pathname;
 
-  // Route: OAuth metadata discovery
+  // Route: Protected Resource Metadata (RFC 9728, MCP spec 2025-06-18)
+  if (pathname === '/.well-known/oauth-protected-resource') {
+    handleProtectedResourceMetadata(req, res, envConfig);
+    return;
+  }
+
+  // Route: OAuth Authorization Server Metadata (RFC 8414, kept for backwards compat)
   if (pathname === '/.well-known/oauth-authorization-server') {
     handleOAuthMetadata(req, res, envConfig);
     return;

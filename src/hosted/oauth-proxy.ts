@@ -9,9 +9,14 @@ import { log } from '../utils/logger.js';
 const REQUIRED_SCOPES = getAllScopes();
 
 /**
- * Handles GET /authorize — proxies to Auth0's /authorize endpoint,
- * injecting the audience and required scopes that the MCP client
- * doesn't know about.
+ * Handles GET /authorize — proxies to Auth0's /authorize endpoint.
+ *
+ * Per MCP spec 2025-06-18, the client sends a `resource` parameter (RFC 8707)
+ * identifying the MCP server it wants a token for. Auth0 uses the `resource`
+ * parameter (with Resource Parameter Compatibility Profile enabled) to scope
+ * the token to the correct API.
+ *
+ * This proxy also injects the required Management API scopes.
  */
 export function handleAuthorize(
   req: IncomingMessage,
@@ -27,7 +32,10 @@ export function handleAuthorize(
   const incomingUrl = new URL(req.url || '/', `http://${req.headers.host}`);
   const params = incomingUrl.searchParams;
 
-  // Inject audience if not already present
+  // Auth0's Resource Parameter Compatibility Profile maps the `resource`
+  // parameter to the API audience. If the client sent `resource`, keep it.
+  // Also set `audience` to the Management API for Auth0 compatibility,
+  // since Auth0 needs it to issue a token with the right API permissions.
   if (!params.has('audience')) {
     params.set('audience', envConfig.auth0Audience);
   }
@@ -40,7 +48,7 @@ export function handleAuthorize(
 
   const auth0AuthorizeUrl = `https://${envConfig.auth0Domain}/authorize?${params.toString()}`;
 
-  log(`Redirecting to Auth0 /authorize with audience=${envConfig.auth0Audience} and ${mergedScopes.length} scopes`);
+  log(`Redirecting to Auth0 /authorize with audience=${params.get('audience')} and ${mergedScopes.length} scopes`);
 
   res.writeHead(302, { Location: auth0AuthorizeUrl });
   res.end();
@@ -48,8 +56,9 @@ export function handleAuthorize(
 
 /**
  * Handles POST /token — proxies to Auth0's /oauth/token endpoint.
- * Forwards the request body as-is since the client sends the correct
- * code, code_verifier, etc. We just relay it to Auth0.
+ *
+ * Per MCP spec 2025-06-18, the client includes the `resource` parameter
+ * in token requests too. We forward the body as-is to Auth0.
  */
 export function handleToken(
   req: IncomingMessage,

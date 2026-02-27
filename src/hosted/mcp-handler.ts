@@ -144,7 +144,16 @@ export async function handleMcpRequest(
   // Check for bearer token on all requests
   const token = extractBearerToken(req);
   if (!token) {
-    res.writeHead(401, { 'Content-Type': 'application/json' });
+    // Per MCP spec 2025-06-18: include WWW-Authenticate with resource_metadata URL (RFC 9728 Section 5.1)
+    const serverBaseUrl =
+      envConfig.serverUrl ||
+      `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host}`;
+    const resourceMetadataUrl = `${serverBaseUrl}/.well-known/oauth-protected-resource`;
+
+    res.writeHead(401, {
+      'Content-Type': 'application/json',
+      'WWW-Authenticate': `Bearer resource_metadata="${resourceMetadataUrl}"`,
+    });
     res.end(JSON.stringify({ error: 'Unauthorized', message: 'Bearer token required' }));
     return;
   }
