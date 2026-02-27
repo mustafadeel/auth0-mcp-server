@@ -2,6 +2,7 @@ import http from 'http';
 import { loadEnvConfig } from './env-config.js';
 import { handleOAuthMetadata } from './oauth-metadata.js';
 import { handleRegister } from './register.js';
+import { handleAuthorize, handleToken } from './oauth-proxy.js';
 import { handleMcpRequest } from './mcp-handler.js';
 import { logInfo, logError } from '../utils/logger.js';
 import { packageVersion } from '../utils/package.js';
@@ -53,6 +54,18 @@ function handleRequest(
   // Route: Dynamic client registration (RFC 7591)
   if (pathname === '/register') {
     handleRegister(req, res, envConfig);
+    return;
+  }
+
+  // Route: OAuth authorize proxy (injects audience + scopes, redirects to Auth0)
+  if (pathname === '/authorize') {
+    handleAuthorize(req, res, envConfig);
+    return;
+  }
+
+  // Route: OAuth token proxy (forwards to Auth0 /oauth/token)
+  if (pathname === '/token') {
+    handleToken(req, res, envConfig);
     return;
   }
 
