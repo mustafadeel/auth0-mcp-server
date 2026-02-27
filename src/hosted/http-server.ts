@@ -3,7 +3,6 @@ import { loadEnvConfig } from './env-config.js';
 import { handleOAuthMetadata } from './oauth-metadata.js';
 import { handleProtectedResourceMetadata } from './protected-resource-metadata.js';
 import { handleRegister } from './register.js';
-import { handleAuthorize, handleToken } from './oauth-proxy.js';
 import { handleMcpRequest } from './mcp-handler.js';
 import { logInfo, logError } from '../utils/logger.js';
 import { packageVersion } from '../utils/package.js';
@@ -52,7 +51,7 @@ function handleRequest(
     return;
   }
 
-  // Route: OAuth Authorization Server Metadata (RFC 8414, kept for backwards compat)
+  // Route: OAuth Authorization Server Metadata (RFC 8414)
   if (pathname === '/.well-known/oauth-authorization-server') {
     handleOAuthMetadata(req, res, envConfig);
     return;
@@ -61,18 +60,6 @@ function handleRequest(
   // Route: Dynamic client registration (RFC 7591)
   if (pathname === '/register') {
     handleRegister(req, res, envConfig);
-    return;
-  }
-
-  // Route: OAuth authorize proxy (injects audience + scopes, redirects to Auth0)
-  if (pathname === '/authorize') {
-    handleAuthorize(req, res, envConfig);
-    return;
-  }
-
-  // Route: OAuth token proxy (forwards to Auth0 /oauth/token)
-  if (pathname === '/token') {
-    handleToken(req, res, envConfig);
     return;
   }
 
@@ -112,7 +99,6 @@ server.listen(envConfig.port, () => {
   logInfo(`Auth0 MCP Server (hosted) v${packageVersion}`);
   logInfo(`Listening on port ${envConfig.port}`);
   logInfo(`MCP endpoint: /mcp`);
-  logInfo(`OAuth metadata: /.well-known/oauth-authorization-server`);
   logInfo(`Auth0 domain: ${envConfig.auth0Domain}`);
   if (envConfig.serverUrl) {
     logInfo(`Public URL: ${envConfig.serverUrl}`);

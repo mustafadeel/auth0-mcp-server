@@ -11,8 +11,8 @@ function buildMetadata(envConfig: HostedEnvConfig, serverBaseUrl: string) {
 
   return {
     issuer,
-    authorization_endpoint: `${serverBaseUrl}/authorize`,
-    token_endpoint: `${serverBaseUrl}/token`,
+    authorization_endpoint: `https://${envConfig.auth0Domain}/authorize`,
+    token_endpoint: `https://${envConfig.auth0Domain}/oauth/token`,
     device_authorization_endpoint: `https://${envConfig.auth0Domain}/oauth/device/code`,
     userinfo_endpoint: `https://${envConfig.auth0Domain}/userinfo`,
     mfa_challenge_endpoint: `https://${envConfig.auth0Domain}/mfa/challenge`,

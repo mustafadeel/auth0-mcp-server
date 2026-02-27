@@ -12,7 +12,7 @@ import { getAllScopes } from '../utils/scopes.js';
 function buildProtectedResourceMetadata(envConfig: HostedEnvConfig, serverBaseUrl: string) {
   return {
     resource: serverBaseUrl,
-    authorization_servers: [serverBaseUrl],
+    authorization_servers: [`https://${envConfig.auth0Domain}`],
     scopes_supported: getAllScopes(),
     bearer_methods_supported: ['header'],
   };
