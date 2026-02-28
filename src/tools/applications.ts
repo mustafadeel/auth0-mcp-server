@@ -281,7 +281,7 @@ export const APPLICATION_HANDLERS: Record<
     config: HandlerConfig
   ): Promise<HandlerResponse> => {
     try {
-      if (!request.token) {
+      if (!request.token && !config.clientId) {
         log('Warning: Token is missing');
         return createErrorResponse('Error: Missing authorization token');
       }
@@ -407,7 +407,7 @@ export const APPLICATION_HANDLERS: Record<
       }
 
       // Check for token
-      if (!request.token) {
+      if (!request.token && !config.clientId) {
         log('Warning: Token is empty or undefined');
         return createErrorResponse('Error: Missing authorization token');
       }
@@ -521,7 +521,7 @@ export const APPLICATION_HANDLERS: Record<
       }
 
       // Check for token
-      if (!request.token) {
+      if (!request.token && !config.clientId) {
         log('Warning: Token is empty or undefined');
         return createErrorResponse('Error: Missing authorization token');
       }
@@ -743,7 +743,7 @@ export const APPLICATION_HANDLERS: Record<
         updateData.compliance_level = compliance_level as ClientCreateComplianceLevelEnum;
 
       // Check for token
-      if (!request.token) {
+      if (!request.token && !config.clientId) {
         log('Warning: Token is empty or undefined');
         return createErrorResponse('Error: Missing authorization token');
       }

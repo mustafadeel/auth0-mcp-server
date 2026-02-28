@@ -67,7 +67,7 @@ export const APPLICATION_GRANTS_HANDLERS: Record<
         return createErrorResponse('Error: scope is required');
       }
 
-      if (!request.token) {
+      if (!request.token && !config.clientId) {
         log('Warning: Token is missing');
         return createErrorResponse('Error: Missing authorization token');
       }

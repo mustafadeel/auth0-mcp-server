@@ -266,7 +266,7 @@ export const ACTION_HANDLERS: Record<
   ): Promise<HandlerResponse> => {
     try {
       // Check for token
-      if (!request.token) {
+      if (!request.token && !config.clientId) {
         log('Warning: Token is empty or undefined');
         return createErrorResponse('Error: Missing authorization token');
       }
@@ -406,7 +406,7 @@ export const ACTION_HANDLERS: Record<
       }
 
       // Check for token
-      if (!request.token) {
+      if (!request.token && !config.clientId) {
         log('Warning: Token is empty or undefined');
         return createErrorResponse('Error: Missing authorization token');
       }
@@ -494,7 +494,7 @@ export const ACTION_HANDLERS: Record<
       }
 
       // Check for token
-      if (!request.token) {
+      if (!request.token && !config.clientId) {
         log('Warning: Token is empty or undefined');
         return createErrorResponse('Error: Missing authorization token');
       }
@@ -583,7 +583,7 @@ export const ACTION_HANDLERS: Record<
       if (secrets !== undefined) updateData.secrets = secrets;
 
       // Check for token
-      if (!request.token) {
+      if (!request.token && !config.clientId) {
         log('Warning: Token is empty or undefined');
         return createErrorResponse('Error: Missing authorization token');
       }
@@ -657,7 +657,7 @@ export const ACTION_HANDLERS: Record<
       }
 
       // Check for token
-      if (!request.token) {
+      if (!request.token && !config.clientId) {
         log('Warning: Token is empty or undefined');
         return createErrorResponse('Error: Missing authorization token');
       }
