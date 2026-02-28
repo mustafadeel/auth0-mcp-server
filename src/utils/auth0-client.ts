@@ -51,6 +51,7 @@ export const getManagementClient = async (config: Auth0Config): Promise<Manageme
       ...commonOptions,
       clientId: config.clientId,
       clientSecret: config.clientSecret,
+      audience: `https://${config.domain}/api/v2/`,
     });
   }
 

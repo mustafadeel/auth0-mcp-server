@@ -38,6 +38,7 @@ describe('Management Client', () => {
         domain: mockConfig.domain,
         clientId: mockConfig.clientId,
         clientSecret: mockConfig.clientSecret,
+        audience: `https://${mockConfig.domain}/api/v2/`,
         retry: { maxRetries: 10, enabled: true },
         headers: {
           'User-agent': expect.any(String),
