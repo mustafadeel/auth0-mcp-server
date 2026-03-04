@@ -6,29 +6,42 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { getToken } from '@auth0/auth0-api-js';
 
 import { HANDLERS, TOOLS } from '../tools/index.js';
 import { getAvailableTools } from '../utils/tools.js';
 import { formatDomain } from '../utils/http-utility.js';
-import { log, logInfo, logError } from '../utils/logger.js';
+import { log, logInfo } from '../utils/logger.js';
 import { packageVersion } from '../utils/package.js';
 import type { HostedEnvConfig } from './env-config.js';
-import { getApiClient } from './api-client.js';
 
 interface ActiveSession {
   server: Server;
   transport: StreamableHTTPServerTransport;
+  token: string;
 }
 
 const sessions = new Map<string, ActiveSession>();
 
 /**
- * Creates a new MCP Server instance wired up with tool handlers.
- * Uses M2M client credentials (clientId/clientSecret) for Management API access
- * instead of a user token.
+ * Extracts Bearer token from the Authorization header.
  */
-function createMcpServer(envConfig: HostedEnvConfig): Server {
+function extractBearerToken(req: IncomingMessage): string | null {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null;
+  }
+  return authHeader.slice(7);
+}
+
+/**
+ * Creates a new MCP Server instance wired up with tool handlers.
+ * The bearer token (a Management API access token obtained via the
+ * /authorize proxy) is passed directly to tool handlers.
+ */
+function createMcpServer(
+  token: string,
+  envConfig: HostedEnvConfig
+): Server {
   const availableTools = getAvailableTools(TOOLS);
   const domain = formatDomain(envConfig.auth0Domain);
 
@@ -52,19 +65,13 @@ function createMcpServer(envConfig: HostedEnvConfig): Server {
         throw new Error(`Unknown tool: ${toolName}`);
       }
 
-      const handlerRequest = {
-        token: '', // Not used in credential mode
+      const requestWithToken = {
+        token,
         parameters: request.params.arguments || {},
       };
 
-      const handlerConfig = {
-        domain,
-        clientId: envConfig.auth0ClientId,
-        clientSecret: envConfig.auth0ClientSecret,
-      };
-
       log(`Executing handler for tool: ${toolName}`);
-      const result = await HANDLERS[toolName](handlerRequest, handlerConfig);
+      const result = await HANDLERS[toolName](requestWithToken, { domain });
       log(`Handler execution completed for: ${toolName}`);
 
       return {
@@ -94,15 +101,16 @@ function createMcpServer(envConfig: HostedEnvConfig): Server {
  * Creates a new session: MCP Server + StreamableHTTPServerTransport.
  */
 async function createSession(
+  token: string,
   envConfig: HostedEnvConfig
 ): Promise<StreamableHTTPServerTransport> {
-  const server = createMcpServer(envConfig);
+  const server = createMcpServer(token, envConfig);
 
   const transport = new StreamableHTTPServerTransport({
     sessionIdGenerator: () => randomUUID(),
     onsessioninitialized: (sessionId: string) => {
       log(`Session initialized: ${sessionId}`);
-      sessions.set(sessionId, { server, transport });
+      sessions.set(sessionId, { server, transport, token });
 
       const enabledToolsCount = getAvailableTools(TOOLS).length;
       const totalToolsCount = TOOLS.length;
@@ -126,24 +134,22 @@ async function createSession(
 
 /**
  * Handles all HTTP requests to /mcp (POST, GET, DELETE).
- * Validates the user's access token using @auth0/auth0-api-js, then
- * delegates to the StreamableHTTPServerTransport.
+ * The bearer token is a Management API access token obtained via the
+ * /authorize proxy flow. It is passed directly to tool handlers.
  */
 export async function handleMcpRequest(
   req: IncomingMessage,
   res: ServerResponse,
   envConfig: HostedEnvConfig
 ): Promise<void> {
-  const serverBaseUrl =
-    envConfig.serverUrl ||
-    `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host}`;
-  const resourceMetadataUrl = `${serverBaseUrl}/.well-known/oauth-protected-resource`;
+  // Check for bearer token on all requests
+  const token = extractBearerToken(req);
+  if (!token) {
+    const serverBaseUrl =
+      envConfig.serverUrl ||
+      `${req.headers['x-forwarded-proto'] || 'http'}://${req.headers.host}`;
+    const resourceMetadataUrl = `${serverBaseUrl}/.well-known/oauth-protected-resource`;
 
-  // Extract bearer token using @auth0/auth0-api-js
-  let accessToken: string;
-  try {
-    accessToken = getToken({ authorization: req.headers.authorization });
-  } catch {
     res.writeHead(401, {
       'Content-Type': 'application/json',
       'WWW-Authenticate': `Bearer resource_metadata="${resourceMetadataUrl}"`,
@@ -152,33 +158,10 @@ export async function handleMcpRequest(
     return;
   }
 
-  // Validate the access token (JWKS signature, issuer, audience, expiry)
-  try {
-    const apiClient = getApiClient(envConfig);
-    await apiClient.verifyAccessToken({ accessToken });
-  } catch (error) {
-    logError(
-      'Token validation failed:',
-      error instanceof Error ? error.message : String(error)
-    );
-    res.writeHead(401, {
-      'Content-Type': 'application/json',
-      'WWW-Authenticate': `Bearer resource_metadata="${resourceMetadataUrl}", error="invalid_token"`,
-    });
-    res.end(
-      JSON.stringify({
-        error: 'Unauthorized',
-        message: 'Invalid or expired access token',
-      })
-    );
-    return;
-  }
-
   // Check for existing session
   const sessionId = req.headers['mcp-session-id'] as string | undefined;
 
   if (sessionId && sessions.has(sessionId)) {
-    // Route to existing session's transport
     const session = sessions.get(sessionId)!;
     await session.transport.handleRequest(req, res);
     return;
@@ -192,6 +175,6 @@ export async function handleMcpRequest(
   }
 
   // New session — create server + transport, then handle the request
-  const transport = await createSession(envConfig);
+  const transport = await createSession(token, envConfig);
   await transport.handleRequest(req, res);
 }
