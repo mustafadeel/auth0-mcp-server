@@ -13,9 +13,7 @@ import { getAllScopes } from '../utils/scopes.js';
 function buildProtectedResourceMetadata(envConfig: HostedEnvConfig, serverBaseUrl: string) {
   const resource = envConfig.serverUrl || serverBaseUrl;
 
-  return new ProtectedResourceMetadataBuilder(resource, [
-    `https://${envConfig.auth0Domain}`,
-  ])
+  return new ProtectedResourceMetadataBuilder(resource, [resource])
     .withScopesSupported(getAllScopes())
     .withBearerMethodsSupported([BearerMethod.HEADER])
     .build()
