@@ -52,8 +52,8 @@ function handleRequest(
     return;
   }
 
-  // Route: OAuth Authorization Server Metadata (RFC 8414)
-  if (pathname === '/.well-known/oauth-authorization-server') {
+  // Route: OAuth Authorization Server Metadata (RFC 8414 + OpenID Connect Discovery)
+  if (pathname === '/.well-known/oauth-authorization-server' || pathname === '/.well-known/openid-configuration') {
     handleOAuthMetadata(req, res, envConfig);
     return;
   }
