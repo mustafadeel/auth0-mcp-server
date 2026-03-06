@@ -60,7 +60,8 @@ function handleRequest(
   }
 
   // Route: Dynamic client registration (RFC 7591)
-  if (pathname === '/register') {
+  // Some clients prepend the MCP endpoint path (e.g., /mcp/register)
+  if (pathname === '/register' || pathname === '/mcp/register') {
     handleRegister(req, res, envConfig);
     return;
   }
