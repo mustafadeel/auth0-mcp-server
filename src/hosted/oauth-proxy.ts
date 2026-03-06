@@ -97,13 +97,23 @@ export function handleTokenProxy(
         forwardBody = params.toString();
       }
 
-      // Forward to Auth0
+      // Forward to Auth0, passing through relevant headers
       const auth0TokenUrl = `https://${envConfig.auth0Domain}/oauth/token`;
+      const forwardHeaders: Record<string, string> = {
+        'Content-Type': contentType || 'application/x-www-form-urlencoded',
+      };
+      // Pass through Authorization header (client_secret_basic, DPoP, etc.)
+      if (req.headers.authorization) {
+        forwardHeaders['Authorization'] = req.headers.authorization;
+      }
+      // Pass through DPoP proof if present
+      if (req.headers.dpop) {
+        forwardHeaders['DPoP'] = req.headers.dpop as string;
+      }
+
       const auth0Response = await fetch(auth0TokenUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': contentType || 'application/x-www-form-urlencoded',
-        },
+        headers: forwardHeaders,
         body: forwardBody,
       });
 
