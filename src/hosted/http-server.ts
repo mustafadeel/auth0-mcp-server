@@ -67,13 +67,13 @@ function handleRequest(
   }
 
   // Route: OAuth authorize proxy — swaps resource to Management API audience
-  if (pathname === '/authorize') {
+  if (pathname === '/authorize' || pathname === '/mcp/authorize') {
     handleAuthorizeProxy(req, res, envConfig);
     return;
   }
 
   // Route: OAuth token proxy — swaps resource and forwards to Auth0
-  if (pathname === '/oauth/token') {
+  if (pathname === '/oauth/token' || pathname === '/mcp/oauth/token') {
     handleTokenProxy(req, res, envConfig);
     return;
   }
