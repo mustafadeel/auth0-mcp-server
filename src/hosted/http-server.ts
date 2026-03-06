@@ -53,7 +53,8 @@ function handleRequest(
   }
 
   // Route: OAuth Authorization Server Metadata (RFC 8414 + OpenID Connect Discovery)
-  if (pathname === '/.well-known/oauth-authorization-server' || pathname === '/.well-known/openid-configuration') {
+  // Some clients append well-known paths to the MCP endpoint (e.g., /mcp/.well-known/...)
+  if (pathname.endsWith('/.well-known/oauth-authorization-server') || pathname.endsWith('/.well-known/openid-configuration')) {
     handleOAuthMetadata(req, res, envConfig);
     return;
   }
