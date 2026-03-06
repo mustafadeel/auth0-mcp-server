@@ -10,9 +10,29 @@ import {
 import { HANDLERS, TOOLS } from '../tools/index.js';
 import { getAvailableTools } from '../utils/tools.js';
 import { formatDomain } from '../utils/http-utility.js';
-import { log, logInfo } from '../utils/logger.js';
+import { log, logInfo, logError } from '../utils/logger.js';
 import { packageVersion } from '../utils/package.js';
 import type { HostedEnvConfig } from './env-config.js';
+
+/**
+ * Extracts the domain from a JWT access token's `aud` claim.
+ * The aud claim is expected to be a URL like "https://tenant.example.auth0.com/api/v2/"
+ * Returns the hostname (e.g., "tenant.example.auth0.com").
+ * Falls back to the configured auth0Domain if extraction fails.
+ */
+function extractDomainFromToken(token: string, fallbackDomain: string): string {
+  try {
+    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString());
+    const aud = Array.isArray(payload.aud) ? payload.aud[0] : payload.aud;
+    if (aud && aud.startsWith('https://')) {
+      const url = new URL(aud);
+      return url.hostname;
+    }
+  } catch (error) {
+    logError('Failed to extract domain from token aud:', error instanceof Error ? error.message : String(error));
+  }
+  return fallbackDomain;
+}
 
 interface ActiveSession {
   server: Server;
@@ -43,7 +63,9 @@ function createMcpServer(
   envConfig: HostedEnvConfig
 ): Server {
   const availableTools = getAvailableTools(TOOLS);
-  const domain = formatDomain(envConfig.auth0Domain);
+  const tokenDomain = extractDomainFromToken(token, envConfig.auth0Domain);
+  const domain = formatDomain(tokenDomain);
+  log(`Using domain from token aud: ${domain}`);
 
   const server = new Server(
     { name: 'auth0', version: packageVersion },
