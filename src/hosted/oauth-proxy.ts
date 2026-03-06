@@ -3,10 +3,17 @@ import { log } from '../utils/logger.js';
 import type { HostedEnvConfig } from './env-config.js';
 
 /**
- * Returns the Management API audience for the configured Auth0 domain.
+ * Returns the Management API audience with a wildcard tenant prefix.
+ *
+ * For domain "tenant.example.auth0.com", returns "https://*.example.auth0.com/api/v2/"
+ * This allows the token to work across tenant subdomains.
  */
 function getManagementApiAudience(envConfig: HostedEnvConfig): string {
-  return envConfig.auth0Audience;
+  const domain = envConfig.auth0Domain;
+  // Strip the first subdomain (tenant name) and replace with wildcard
+  const parts = domain.split('.');
+  const wildcardDomain = parts.length > 2 ? `*.${parts.slice(1).join('.')}` : `*.${domain}`;
+  return `https://${wildcardDomain}/api/v2/`;
 }
 
 /**
