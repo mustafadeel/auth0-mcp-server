@@ -1,5 +1,6 @@
 import type { IncomingMessage, ServerResponse } from 'http';
 import type { HostedEnvConfig } from './env-config.js';
+import { getAllScopes } from '../utils/scopes.js';
 
 /**
  * Builds the OAuth 2.0 Authorization Server Metadata document (RFC 8414).
@@ -19,22 +20,7 @@ function buildMetadata(envConfig: HostedEnvConfig, serverBaseUrl: string) {
     jwks_uri: `https://${envConfig.auth0Domain}/.well-known/jwks.json`,
     registration_endpoint: `${serverBaseUrl}/register`,
     revocation_endpoint: `https://${envConfig.auth0Domain}/oauth/revoke`,
-    scopes_supported: [
-      'openid',
-      'profile',
-      'offline_access',
-      'name',
-      'given_name',
-      'family_name',
-      'nickname',
-      'email',
-      'email_verified',
-      'picture',
-      'created_at',
-      'identities',
-      'phone',
-      'address',
-    ],
+    scopes_supported: ['openid', 'offline_access', ...getAllScopes()],
     response_types_supported: [
       'code',
       'token',
